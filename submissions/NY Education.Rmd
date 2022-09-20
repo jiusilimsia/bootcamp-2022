@@ -1,0 +1,69 @@
+---
+title: "NY Education"
+author: "Jiusi Li"
+date: "2022-09-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(dplyr)
+```
+
+## Data Cleaning
+```{r}
+ny_sch <- read_csv('nys_schools.csv')
+ny_acs <- read_csv('nys_acs.csv')
+```
+```{r}
+head(ny_sch)
+head(ny_acs)
+```
+```{r}
+summary(ny_sch)
+summary(ny_acs)
+```
+```{r}
+sum(is.na(ny_sch))
+sum(is.na(ny_sch$county_name))
+sum(is.na(ny_sch$year))
+
+sum(is.na(ny_acs))
+sum(is.na(ny_acs$county_name))
+sum(is.na(ny_acs$year))
+```
+```{r}
+ny_sch[ny_sch$total_enroll==-99,]
+```
+```{r}
+for (x in colnames(ny_sch)) {
+  ny_sch[x][ny_sch[x]==-99]<-NA
+}
+summary(ny_sch)
+sum(is.na(ny_sch))
+```
+```{r}
+nys_acs %>%
+  mutate(group = case_when(median_household_income < quantile(median_household_income,0.25) ~ 'low',
+                      between(median_household_income, quantile(median_household_income, 0.25), quantile(median_household_income, 0.75))~'med',
+                      TRUE ~ 'high')
+           )
+```
+
+
+## Merge tables
+```{r}
+merged_df <- merge(ny_sch,ny_acs, ON = c("county_name","year"))
+head(merged_df)
+```
+
+## Visualization
+```{r}
+group_by(merged_df,county_name,year)
+  %>%summarise(mean_math = mean(mean_math_score))
+```
+
